@@ -6,7 +6,7 @@ Template and script below checks the status of Keepalived Processes
 
 <p>
 This template consist of a Zabbix template and a simple monitoring script. The Keepalived VRRP instance notifys the script when a change happens. The Script writes the Status of the VRRP instance into a temporary file. The Zabbix agent then reads the content of the file with vfs.file.regmatch and reports it to the Zabbix server.
-Unfortunately I am only able to provide a 
+Unfortunately I am only able to test and provide a template for Zabbix Version 5.0.
 </p>
 
 
