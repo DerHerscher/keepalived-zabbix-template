@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.0</version>
+    <date>2023-01-25T08:30:55Z</date>
+    <groups>
+        <group>
+            <name>Services/Fabric/Loadbalancer</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template App Keepalived</template>
+            <name>Template App Keepalived</name>
+            <groups>
+                <group>
+                    <name>Services/Fabric/Loadbalancer</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>Keepalived</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>Keepalived: process count</name>
+                    <key>proc.num[keepalived]</key>
+                    <delay>2m</delay>
+                    <applications>
+                        <application>
+                            <name>Keepalived</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Keepalived: is BACKUP</name>
+                    <key>vfs.file.regmatch[/var/run/keepalived_status,^.*(BACKUP).*$]</key>
+                    <delay>2m</delay>
+                    <applications>
+                        <application>
+                            <name>Keepalived</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
+                    <name>Keepalived: is MASTER</name>
+                    <key>vfs.file.regmatch[/var/run/keepalived_status,^.*(MASTER).*$]</key>
+                    <delay>2m</delay>
+                    <applications>
+                        <application>
+                            <name>Keepalived</name>
+                        </application>
+                    </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{prev()}=0 and {last()}=1</expression>
+                            <name>Keepalived: state change from BACKUP to MASTER</name>
+                            <priority>AVERAGE</priority>
+                        </trigger>
+                        <trigger>
+                            <expression>{prev()}=1 and {last()}=0</expression>
+                            <name>Keepalived: state change from MASTER to BACKUP</name>
+                            <priority>AVERAGE</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+            </items>
+        </template>
+    </templates>
+    <triggers>
+        <trigger>
+            <expression>{Template App Keepalived:vfs.file.regmatch[/var/run/keepalived_status,^.*(MASTER).*$].last()}=0 and {Template App Keepalived:proc.num[keepalived].last()}&lt;2</expression>
+            <name>Keepalived: state is BACKUP but it's stopped</name>
+            <priority>HIGH</priority>
+        </trigger>
+        <trigger>
+            <expression>{Template App Keepalived:vfs.file.regmatch[/var/run/keepalived_status,^.*(MASTER).*$].last()}=1 and {Template App Keepalived:proc.num[keepalived].last()}&lt;2</expression>
+            <name>Keepalived: state is MASTER but it's stopped</name>
+            <priority>DISASTER</priority>
+        </trigger>
+    </triggers>
+</zabbix_export>
